@@ -1,0 +1,11 @@
+MODEL:
+  INPUT_SIZE: 224
+TRAIN:
+  EPOCH: 50
+  BATCH_SIZE: 8
+  PRETRAINED: True
+  DEVICE: "cpu"
+  DATA_DIR: "/content/transistor"
+  SAVE_DIR: "/content"
+  CHECKPOINT_PATH: "/home/pep/Drive/PCLOUD/Projects/Anomaly-Detection/PaDiM/checkpoints/train_transistor_0.95.pt"
+  REDUCE_FEATURES: 100

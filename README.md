@@ -24,7 +24,9 @@ $ python inference_cam.py --camidx 0 --config config.yaml --threshold 0.5
 ```
 
 where:
-    - **camidx**: camera index (default: 0)
+    - **camidx**: camera index (default: 0).
+
     - **config**: path of config.yaml file, where model will load its configuration (if you use gpu, change "cpu" to "cuda" in DEVICE)
+
     - **threshold**: threshold for model to decide whether it's defected or not 
 

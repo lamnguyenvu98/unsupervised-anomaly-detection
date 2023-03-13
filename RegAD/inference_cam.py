@@ -11,6 +11,7 @@ import argparse
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--camidx", '-i', default=0, type=int, help="Camera input index")
 parser.add_argument("--threshold", '-t', default=0.5, type=float, help="Threshold number for prediction")
 parser.add_argument('--config', '-c', required=True, type=str, help="path to yaml config file")
 ar = parser.parse_args()
@@ -28,7 +29,7 @@ support_set = read_support_set(args.INFERENCE.SUPPORT_SET_PATH)
 
 support_distribution, support_feat = model.calculate_distribution_support_set(support_set)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(ar.camidx)
 
 while True:
     ret, frame = cap.read()

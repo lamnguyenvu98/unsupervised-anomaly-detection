@@ -12,6 +12,7 @@ from load_config import read_args
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--camidx', '-i', default=0, type=int, help="Camera index")
 parser.add_argument('--config', '-c', required=True, type=str, help="path to yaml config file")
 ar = parser.parse_args()
 

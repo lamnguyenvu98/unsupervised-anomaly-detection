@@ -8,6 +8,8 @@ from load_config import read_args
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--camidx', '-i', default=0, type=int, help="Camera index")
+parser.add_argument("--threshold", '-t', default=0.5, type=float, help="Threshold number for prediction")
 parser.add_argument('--config', '-c', required=True, type=str, help="path to yaml config file")
 ar = parser.parse_args()
 
@@ -19,7 +21,7 @@ padim.load_checkpoint()
 
 classes = ['OK', 'NG']
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(ar.camidx)
 
 while True:
     ret, img = cap.read()
@@ -28,10 +30,10 @@ while True:
     data = cv2.resize(img, (224, 224))
     data = torch.tensor(data/255.).permute(2, 0, 1).unsqueeze(0).float()
     scores = padim.predict(data)
-    img_scores = np.any(scores > 0.5).astype('int')
+    img_scores = np.any(scores > ar.threshold).astype('int')
     print("prediction: ", classes[img_scores])
 
-    mask = np.where(scores.squeeze() > 0.5, 1, 0)
+    mask = np.where(scores.squeeze() > ar.threshold, 1, 0)
     mask = (mask * 255).astype(np.uint8)
     mask = cv2.resize(mask, (w, h))
 

@@ -40,6 +40,9 @@ class PaDiM():
         self.max_score = None
         self.min_score = None
 
+    def get_threshold(self):
+        return self.threshold
+
     def predict(self, data):
         '''
             data [torch.Tensor]: input data which has shape (batch, C, H, W)

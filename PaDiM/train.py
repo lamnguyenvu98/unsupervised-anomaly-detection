@@ -44,5 +44,5 @@ model.train(train_dl)
 roc_auc = model.evaluate(test_dl)
 
 print("ROC AUC score:", roc_auc)
-
-model.save_checkpoint(filename='train_gaussain.pkl')
+print("Threshold: ", model.threshold)
+model.save_checkpoint(filename=f'train_transistor_{roc_auc:.2f}.pt')

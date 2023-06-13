@@ -7,5 +7,6 @@ TRAIN:
   DEVICE: "cpu"
   DATA_DIR: "/content/transistor"
   SAVE_DIR: "/content"
+INFERENCE:
   CHECKPOINT_PATH: "/home/pep/Drive/PCLOUD/Projects/Anomaly-Detection/PaDiM/checkpoints/train_transistor_0.95.pt"
   REDUCE_FEATURES: 100

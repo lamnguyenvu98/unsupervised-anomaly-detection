@@ -16,7 +16,7 @@ class PaDiM():
         self.input_size = (args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE)
         self.device = args.TRAIN.DEVICE
         self.save_dir = args.TRAIN.SAVE_DIR
-        self.checkpoint_path = args.TRAIN.CHECKPOINT_PATH
+        self.checkpoint_path = args.INFERENCE.CHECKPOINT_PATH
 
         if args.TRAIN.PRETRAINED:
             self.backbone = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).to(self.device)
@@ -25,7 +25,7 @@ class PaDiM():
         
         self.t_d = 448
         # random pick features
-        self.d = args.TRAIN.REDUCE_FEATURES
+        self.d = args.INFERENCE.REDUCE_FEATURES
         self.backbone.eval()
         self.idx = torch.tensor(sample(range(0, self.t_d), self.d)).to(self.device)
         

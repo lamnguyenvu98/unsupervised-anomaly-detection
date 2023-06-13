@@ -16,7 +16,7 @@ model = PaDiM(args)
 
 tfms = transforms.Compose(
             [
-                transforms.Resize(args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE),
+                transforms.Resize([args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE]),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406],

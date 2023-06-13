@@ -8,6 +8,7 @@ from load_config import read_args
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--image", "-i", required=True, type=str, help="path to the image")
 parser.add_argument('--config', '-c', required=True, type=str, help="path to yaml config file")
 ar = parser.parse_args()
 
@@ -17,7 +18,7 @@ padim = PaDiM(args)
 
 padim.load_checkpoint()
 
-img = cv2.imread('/home/pep/Drive/PCLOUD/Projects/Anomaly-Detection/DFR/001.png')
+img = cv2.imread(ar.image)
 h, w = img.shape[:2]
 data = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 data = cv2.resize(img, (256, 256))

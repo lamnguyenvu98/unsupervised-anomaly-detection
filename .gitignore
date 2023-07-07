@@ -9,3 +9,7 @@ PaDiM/__pycache__
 DFR/__pycache__
 DFR/models/__pycache__
 
+env/
+.directory
+build/
+Unsupervised_Anomaly_Detection.egg-info/

@@ -1,9 +1,8 @@
-from datasets.many_class_dataset import TrainDataset, TestDataset, TaskTrainSampler
-from datasets.generate_sup import GenerateSupportSet
-from models.regad import RegAD
+from RegAD.datasets import TrainDataset, TestDataset, TaskTrainSampler, GenerateSupportSet
+from RegAD.models import RegAD
 import argparse
 import os
-from utils.load_config import read_args
+from load_config import read_args
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
@@ -12,8 +11,6 @@ parser.add_argument('--config', '-c', required=True, type=str, help="path to yam
 ar = parser.parse_args()
 
 args = read_args(ar.config)
-
-model = RegAD(args)
 
 tfms = transforms.Compose(
     [
@@ -48,6 +45,8 @@ print('Size of test set:', len(test_set))
 print('Number of testing rounds:', len(support_set_eval))
 print('Size of support set:', support_set_eval.size(1))
 
+model = RegAD(args)
+
 if args.TRAIN.RESUME_TRAIN:
     model.load_checkpoint()
     start_epoch = model.current_epoch + 1
@@ -68,4 +67,4 @@ for epoch in range(start_epoch, args.TRAIN.EPOCH):
     else:
         print(f"[RESULT] Train Loss: {train_loss:.5f}\n")
     # save latest checkpoint
-    model.save_last(filename=f"last_{args.TRAIN.N_SHOT}.pt", epoch=epoch)
+    model.save_last(epoch=epoch, filename=f"last.pt")

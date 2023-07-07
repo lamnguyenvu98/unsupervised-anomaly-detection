@@ -41,17 +41,17 @@ print('Size of test set: ', len(test_set))
 
 dfr = DFR(args)
 
-for epoch in range(0, args.TRAIN.EPOCH):
-    loss_train = dfr.train(train_dl)
-    print(f'EPOCH {epoch+1} - Train Loss: {loss_train}')
-
-print('[INFO] Train Successful!')
-print('[INFO] TESTING')
-
-dfr.compute_threshold(train_dl, fpr=0.005)
-roc_auc_avg, loss_eval = dfr.evaluate(test_dl, dfr.threshold)
-
-print("ROC AUC score:",roc_auc_avg)
-
-print('Save checkpoint')
-dfr.save_checkpoints(filename='best.pt')
+for epoch in range(start_epoch, args.TRAIN.EPOCH):
+    print(f"Epoch {epoch} / {args.TRAIN.EPOCH}")
+    loss_train = model.train(train_dl)
+    # Evaluate and save checkpoint k best checkpoint after 100 epoch
+    if epoch >= 100:
+        model.compute_threshold(train_dl, fpr=0.005)
+        auroc_score, loss_eval = model.evaluate(test_dl, model.threshold)
+        metrics = {'epoch': epoch, 'auroc_score': auroc_score}
+        model.save_top_k(metrics, monitor='auroc_score', k=3, filename='screw-{epoch:03d}-{auroc_score:.2f}.pt')
+        print(f'[RESULT] Train Loss: {loss_train:.5f} - Val Loss: {loss_eval:.5f} - AUROC: {auroc_score:.3f}\n')
+    else:
+        print(f'[RESULT] Train Loss: {loss_train:.5f}\n')
+    # Always save last state of the model
+    model.save_last(epoch, filename='last.pt')

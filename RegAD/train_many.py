@@ -48,12 +48,24 @@ print('Size of test set:', len(test_set))
 print('Number of testing rounds:', len(support_set_eval))
 print('Size of support set:', support_set_eval.size(1))
 
-best_roc = 0
+if args.TRAIN.RESUME_TRAIN:
+    model.load_checkpoint()
+    start_epoch = model.current_epoch + 1
+else:
+    start_epoch = 0
 
-for epoch in range(args.TRAIN.EPOCH):
+for epoch in range(start_epoch, args.TRAIN.EPOCH):
+    print(f"EPOCH: {epoch+1}/{args.TRAIN.EPOCH}")
+    model.adjust_learning_rate(epoch, args.TRAIN.EPOCH)
     train_loss = model.train(train_dl)
-    roc_avg, val_loss = model.evaluate(test_dl, support_set_eval)
-    print(f"[Epoch {epoch + 1}] Train Loss: {train_loss:.5f} , Val Loss: {val_loss:.5f} , ROC AUC {args.TRAIN.N_TEST} rounds : {roc_avg:.3f}")
-    if best_roc < roc_avg:
-        model.save_checkpoint(filename=f"{epoch+1}_{args.TRAIN.N_SHOT}_{roc_avg:.2f}.pt")
-        best_roc = roc_avg
+    auroc_score, best_score, val_loss = model.evaluate(test_dl, support_set_eval)
+    # Evaluate model after 2 epoch
+    if epoch >= 2:
+        # save best k model for average auroc_score
+        metrics = {'epoch': epoch, 'auroc_score': auroc_score}
+        model.save_top_k(metrics, monitor='auroc_score', filename="trans-{epoch:02d}-{auroc_score:.2f}.pt", k=3)
+        print(f"[RESULT] Train Loss: {train_loss:.5f} , Val Loss: {val_loss:.5f} , AUROC: {auroc_score:.2f} - BEST: {best_score:.2f}\n")
+    else:
+        print(f"[RESULT] Train Loss: {train_loss:.5f}\n")
+    # save latest checkpoint
+    model.save_last(filename=f"last_{args.TRAIN.N_SHOT}.pt", epoch=epoch)

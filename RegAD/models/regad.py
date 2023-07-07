@@ -1,17 +1,14 @@
-from pathlib import Path
-import sys
-sys.path.append(str(Path(__file__).parents[1].absolute()))
-
 import os
 from models.stn import stn_net
 from models.siamese import Encoder, Predictor
 from utils.meter import AverageMeter
-from loss import negative_cosine_similairty
+from RegAD.src.loss import negative_cosine_similairty
 from utils.funcs import *
 from collections import OrderedDict
 from scipy.ndimage import gaussian_filter
 from sklearn.metrics import roc_auc_score
 import torch
+from tqdm import tqdm
 import re
 
 class RegAD():

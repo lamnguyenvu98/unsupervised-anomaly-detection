@@ -1,31 +1,33 @@
 from torchvision.models import resnet18, ResNet18_Weights
-from torchvision import transforms
+
 import torch
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
 from random import sample
 from collections import OrderedDict
 import numpy as np
-import pickle
 import os
-from scipy.spatial.distance import mahalanobis
 from scipy.ndimage import gaussian_filter
 from sklearn.metrics import roc_auc_score, precision_recall_curve
 
-class PaDiM():
-    def __init__(self, args) -> None:
+from dotmap import DotMap
+
+class Padim(object):
+    def __init__(self, args: DotMap) -> None:
         self.input_size = (args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE)
         self.device = args.TRAIN.DEVICE
         self.save_dir = args.TRAIN.SAVE_DIR
-        self.checkpoint_path = args.INFERENCE.CHECKPOINT_PATH
+        self.checkpoint_path = args.TRAIN.CHECKPOINT_PATH
 
         if args.TRAIN.PRETRAINED:
-            self.backbone = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).to(self.device)
+            self.backbone = resnet18(weights=ResNet18_Weights.DEFAULT).to(self.device)
         else:
             self.backbone = resnet18().to(self.device)
         
         self.t_d = 448
         # random pick features
-        self.d = args.INFERENCE.REDUCE_FEATURES
+        self.d = args.TRAIN.REDUCE_FEATURES
         self.backbone.eval()
         self.idx = torch.tensor(sample(range(0, self.t_d), self.d)).to(self.device)
         
@@ -36,14 +38,14 @@ class PaDiM():
         self.backbone.layer3[-1].register_forward_hook(self.hooks)
         
         self.distribution = None
-        self.threshold = None
+        self._threshold = None
         self.max_score = None
         self.min_score = None
 
-    def get_threshold(self):
-        return self.threshold
+    def get_optimap_threshold(self) -> None:
+        return self._threshold
 
-    def predict(self, data):
+    def predict(self, data: torch.Tensor) -> float:
         '''
             data [torch.Tensor]: input data which has shape (batch, C, H, W)
                 H, W    = (224, 224)
@@ -99,7 +101,7 @@ class PaDiM():
 
         return scores
 
-    def train(self, dataloader):
+    def train(self, dataloader: DataLoader) -> None:
         self.backbone.eval()
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
 
@@ -136,7 +138,7 @@ class PaDiM():
         # save learned distribution
         self.distribution = [mean, cov]
 
-    def evaluate(self, dataloader):
+    def evaluate(self, dataloader: DataLoader) -> float:
         self.backbone.eval()
         test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
 
@@ -194,58 +196,57 @@ class PaDiM():
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
         gt_list = np.asarray(gt_list)
         img_roc_auc = roc_auc_score(gt_list, img_scores)
-        # self.threshold = self.find_optimal_threshold(gt_list, img_scores)
-        # print("Optimal threshold is:", self.threshold)
+        self._threshold = self.find_optimal_threshold(gt_list, img_scores)
+        print("Optimal threshold is:", self._threshold)
         return img_roc_auc
 
-    def mahalanobis_torch(self, u, v, cov):
+    def mahalanobis_torch(self, u, v, cov) -> torch.Tensor:
         delta = u - v
         m = torch.dot(delta, torch.matmul(cov, delta))
         return torch.sqrt(m)
 
-    # def find_optimal_threshold(self, gt_list, img_scores):
-    #     precision, recall, thresholds = precision_recall_curve(gt_list, img_scores)
-    #     a = 2 * precision * recall
-    #     b = precision + recall
-    #     f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
-    #     threshold = thresholds[np.argmax(f1)]
-    #     return threshold
+    def find_optimal_threshold(self, gt_list, img_scores):
+        precision, recall, thresholds = precision_recall_curve(gt_list, img_scores)
+        a = 2 * precision * recall
+        b = precision + recall
+        f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
+        threshold = thresholds[np.argmax(f1)]
+        return threshold
 
-    def save_checkpoint(self, filename):
+    def save_checkpoint(self, filename: str) -> None:
         ckp = {
             "max_score": self.max_score,
             "min_score": self.min_score,
-            "threshold": self.threshold,
+            "threshold": self._threshold,
             "idx": self.idx,
             "dist": self.distribution
         }
         path = os.path.join(self.save_dir, filename)
         torch.save(ckp, path)
-        # with open(path, 'wb') as f:
-        #     pickle.dump(ckp, f)
     
-    def load_checkpoint(self):
-        # with open(self.checkpoint_path, 'rb') as f:
-        #     ckp = pickle.load(f)
-        ckp = torch.load(self.checkpoint_path, map_location=self.device)
+    def load_checkpoint(self, checkpoint_path: str | None = None) -> None:
+        if checkpoint_path is None:
+            ckp = torch.load(self.checkpoint_path, map_location=self.device)
+        else:
+            ckp = torch.load(checkpoint_path, map_location=self.device)
         self.max_score = ckp['max_score']
         self.min_score = ckp['min_score']
-        self.threshold = ckp['threshold']
+        self._threshold = ckp['threshold']
         self.idx = ckp['idx']
         self.distribution = ckp['dist']
         
-    def hooks(self, module, input, output):
+    def hooks(self, module, input, output) -> None:
         self.output_layers.append(output)
 
 # helper functions
-def denormalization(x):
+def denormalization(x: np.ndarray) -> np.ndarray:
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     x = (((x.transpose(1, 2, 0) * std) + mean) * 255.).astype(np.uint8)
     return x
 
 
-def embedding_concat(x, y):
+def embedding_concat(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     B, C1, H1, W1 = x.size()
     _, C2, H2, W2 = y.size()
     s = int(H1 / H2)

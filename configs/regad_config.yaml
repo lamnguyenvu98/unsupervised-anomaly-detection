@@ -1,0 +1,25 @@
+MODEL:
+  INPUT_SIZE: 224
+  BACKBONE: "resnet18"
+  STN_MODE: "rotation_scale"
+TRAIN:
+  EPOCH: 50
+  BATCH_SIZE: 32
+  N_SHOT: 4
+  N_TEST: 5
+  LEARNING_RATE_STN: 1.0e-4
+  LEARNING_RATE_ENC: 1.0e-4
+  LEARNING_RATE_PRED: 1.0e-4
+  MOMENTUM_STN: 9.0e-1
+  MOMENTUM_ENC: 9.0e-1  
+  MOMENTUM_PRED: 9.0e-1
+  PRETRAINED: True
+  DEVICE: "cuda"
+  TRAIN_DATA_DIR: "/content/mvtec-ad"
+  TEST_DATA_DIR: "/content/mvtec-ad/transistor"
+  IGNORE_CLASS: None
+  SAVE_DIR: "/content/drive/MyDrive/Anomaly-Detection/RegAD"
+  RESUME_TRAIN: False
+  CHECKPOINT_PATH: "/content/drive/MyDrive/Anomaly-Detection/RegAD/last.pt"
+INFERENCE:
+  SUPPORT_SET_PATH: ""

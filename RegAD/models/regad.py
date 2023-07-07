@@ -1,9 +1,11 @@
 import os
-from models.stn import stn_net
-from models.siamese import Encoder, Predictor
-from utils.meter import AverageMeter
-from RegAD.src.loss import negative_cosine_similairty
-from utils.funcs import *
+
+from RegAD.models.stn import stn_net
+from RegAD.models.siamese import Encoder, Predictor
+from RegAD.utils.meter import AverageMeter
+from RegAD.loss import negative_cosine_similairty
+from RegAD.utils.funcs import *
+
 from collections import OrderedDict
 from scipy.ndimage import gaussian_filter
 from sklearn.metrics import roc_auc_score
@@ -11,8 +13,13 @@ import torch
 from tqdm import tqdm
 import re
 
+import math
+from torch.utils.data import DataLoader
+
+from dotmap import DotMap
+
 class RegAD():
-    def __init__(self, args)-> None:
+    def __init__(self, args: DotMap)-> None:
         self.device = args.TRAIN.DEVICE
         self.STN = stn_net(resnet_type=args.MODEL.BACKBONE, 
                            stn_mode=args.MODEL.STN_MODE, 
@@ -23,7 +30,7 @@ class RegAD():
         self.num_test = args.TRAIN.N_TEST
         self.n_shot = args.TRAIN.N_SHOT
         self.save_dir = args.TRAIN.SAVE_DIR
-        self.checkpoint_path = args.INFERENCE.CHECKPOINT_PATH
+        self.checkpoint_path = args.TRAIN.CHECKPOINT_PATH
         
         self.lr_stn = args.TRAIN.LEARNING_RATE_STN
         self.lr_enc = args.TRAIN.LEARNING_RATE_ENC
@@ -47,7 +54,7 @@ class RegAD():
         self.best_top_k = dict()
         self.curent_epoch = None
 
-    def predict(self, query_image, support_distribution, support_feat, norm='avg'):
+    def predict(self, query_image: torch.Tensor, support_distribution: torch.Tensor, support_feat: torch.Tensor, norm: str = 'avg') -> float:
         '''
             support_set [torch.Tensor]: shape (K, C, H, W)
                 K: number of shot (number of images in support set)
@@ -109,7 +116,7 @@ class RegAD():
 
         return scores
         
-    def train(self, dataloader):
+    def train(self, dataloader: DataLoader) -> float:
         self.STN.train()
         self.ENC.train()
         self.PRED.train()
@@ -150,7 +157,7 @@ class RegAD():
         
         return total_losses.avg
     
-    def evaluate(self, test_dataloader, support_set_eval):
+    def evaluate(self, test_dataloader: DataLoader, support_set_eval: torch.Tensor) -> tuple[float, float, float]:
         self.STN.eval()
         self.ENC.eval()
         self.PRED.eval()
@@ -247,7 +254,7 @@ class RegAD():
         
         return roc_auc_avg, best_score, meter.avg
     
-    def augment_support_set(self, support_img):
+    def augment_support_set(self, support_img: torch.Tensor) -> torch.Tensor:
         augment_support_img = support_img
         # rotate img with small angle
         for angle in [-np.pi/4, -3 * np.pi/16, -np.pi/8, -np.pi/16, np.pi/16, np.pi/8, 3 * np.pi/16, np.pi/4]:
@@ -272,7 +279,7 @@ class RegAD():
 
         return augment_support_img
     
-    def calculate_distribution_support_set(self, support_img):
+    def calculate_distribution_support_set(self, support_img: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         support_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
         augment_support_img = self.augment_support_set(support_img)
         with torch.no_grad():
@@ -304,7 +311,7 @@ class RegAD():
 
         return support_outputs, support_feat
 
-    def adjust_learning_rate(self, epoch, end_epoch):
+    def adjust_learning_rate(self, epoch: int, end_epoch: int) -> None:
         """Decay the learning rate based on schedule"""
 
         optimizers = [self.STN_optimizer, self.ENC_optimizer, self.PRED_optimizer]
@@ -334,7 +341,7 @@ class RegAD():
             ckp.update({'curent_epoch': self.curent_epoch})
         torch.save(ckp, path)
 
-    def save_last(self, filename, epoch):
+    def save_last(self, epoch: int, filename: str) -> None:
         self.curent_epoch = epoch
         path = os.path.join(self.save_dir, filename)
         if self.prev_path is None:
@@ -346,7 +353,7 @@ class RegAD():
             self.save_checkpoint(path)
             self.prev_path = path
 
-    def format_checkpoint_name(self, metrics, filename=None, prefix = ""):
+    def format_checkpoint_name(self, metrics: dict, filename: str | None = None, prefix: str = "") -> str:
         file_name = "{epoch}" if filename is None else filename
         
         groups = re.findall(r"(\{.*?)[:\}]", file_name)
@@ -366,7 +373,7 @@ class RegAD():
 
         return file_name
 
-    def save_top_k(self, metrics, monitor, k=1, filename=None):
+    def save_top_k(self, metrics: dict, monitor: str, k: int = 1, filename: str | None = None) -> None:
         assert "epoch" in metrics.keys(), f"Add epoch into {metrics}"
         assert monitor in metrics.keys(), f"{monitor} is not existed in {metrics}. Select right monitor value."
         self.curent_epoch = metrics['epoch']
@@ -389,8 +396,11 @@ class RegAD():
             self.save_checkpoint(k_path)
 
 
-    def load_checkpoint(self):
-        ckp = torch.load(self.checkpoint_path, map_location=self.device)
+    def load_checkpoint(self, checkpoint_path: str | None = None) -> None:
+        if checkpoint_path is None:
+            ckp = torch.load(self.checkpoint_path, map_location=self.device)
+        else:
+            ckp = torch.load(checkpoint_path, map_location=self.device)
         self.STN.load_state_dict(ckp['STN'])
         self.ENC.load_state_dict(ckp['ENC'])
         self.PRED.load_state_dict(ckp['PRED'])

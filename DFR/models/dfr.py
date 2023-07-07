@@ -1,19 +1,22 @@
-from models.feature_extractor import FeatureExtractor
-from models.encoder import AutoEncoder
+from DFR.models.feature_extractor import FeatureExtractor
+from DFR.models.encoder import AutoEncoder
+
 import torch
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
 from tqdm import tqdm
 import numpy as np
 import random
 import os
-from torchvision import transforms
 from sklearn.decomposition import PCA
 import re
 from sklearn.metrics import roc_auc_score
 
-class DFR():
-    def __init__(self, args, latent_dim=321):
-        super().__init__()
+from dotmap import DotMap
+
+class DFR(object):
+    def __init__(self, args: DotMap, latent_dim: int = 321):
         self.device = args.TRAIN.DEVICE
         self.input_size = (args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE)
         self.num_layers = args.TRAIN.NUM_LAYERS
@@ -43,14 +46,13 @@ class DFR():
         self.best_top_k = dict()
         self.current_epoch = None
 
-     
-    def loss_function(self, y_pred, y_true):
+    def loss_function(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
         return torch.mean((y_pred - y_true)**2)
     
-    def calculate_map(self, y_pred, y_true):
+    def calculate_map(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
         return torch.mean((y_pred - y_true)**2, dim=1)
 
-    def compute_threshold(self, dataloader, fpr = 0.005):
+    def compute_threshold(self, dataloader: DataLoader, fpr: float = 0.005) -> None:
         error = []
         self.feature_extractor.eval()
         self.auto_encoder.eval()
@@ -64,7 +66,7 @@ class DFR():
 
         self.threshold = np.percentile(error, 100 - fpr)
     
-    def compute_pca(self, dataloader):
+    def compute_pca(self, dataloader: DataLoader) -> float:
         extract_per_sample = 20
         extractions = []
 
@@ -87,7 +89,7 @@ class DFR():
         print(f"Components with explainable variance 0.9 -> {cd}")
         return cd
     
-    def predict(self, data):
+    def predict(self, data: torch.Tensor) -> np.ndarray:
         self.feature_extractor.eval()
         self.auto_encoder.eval()
         
@@ -99,7 +101,7 @@ class DFR():
                                align_corners=True).squeeze(1).detach().numpy()
         return scores
         
-    def train(self, dataloader):
+    def train(self, dataloader: DataLoader) -> float:
         self.feature_extractor.eval()
         self.auto_encoder.train()
         losses = 0
@@ -116,7 +118,7 @@ class DFR():
         losses /= len(dataloader)
         return losses
 
-    def evaluate(self, dataloader, threshold):
+    def evaluate(self, dataloader: DataLoader, threshold: float) -> tuple[float, float]:
         self.feature_extractor.eval()
         self.auto_encoder.eval()
         gt_list = list()
@@ -143,7 +145,7 @@ class DFR():
         loss_eval /= len(dataloader)
         return roc_auc, loss_eval
 
-    def save_checkpoint(self, path):
+    def save_checkpoint(self, save_path: str) -> None:
         ckp = {
             'best_top_k': self.best_top_k,
             'prev_path': self.prev_path,
@@ -154,9 +156,9 @@ class DFR():
         }
         if self.current_epoch:
             ckp.update({'current_epoch': self.current_epoch})
-        torch.save(ckp, path)
+        torch.save(ckp, save_path)
 
-    def save_last(self, current_epoch, filename):
+    def save_last(self, current_epoch: int, filename: str) -> None:
         self.current_epoch = current_epoch
         path = os.path.join(self.save_dir, filename)
         if self.prev_path is None:
@@ -168,7 +170,7 @@ class DFR():
             self.save_checkpoint(path)
             self.prev_path = path
 
-    def format_checkpoint_name(self, metrics, filename=None, prefix = ""):
+    def format_checkpoint_name(self, metrics: dict, filename: str | None = None, prefix: str = "") -> str:
         file_name = "{epoch}" if filename is None else filename
         
         groups = re.findall(r"(\{.*?)[:\}]", file_name)
@@ -188,7 +190,7 @@ class DFR():
 
         return file_name
 
-    def save_top_k(self, metrics, monitor, k=1, filename=None):
+    def save_top_k(self, metrics: dict, monitor: str, k: int = 1, filename: str | None = None) -> None:
         assert "epoch" in metrics.keys(), f"Add epoch into {metrics}"
         assert monitor in metrics.keys(), f"{monitor} is not existed in {metrics}. Select right monitor value."
         self.current_epoch = metrics['epoch']
@@ -210,14 +212,18 @@ class DFR():
                 continue
             self.save_checkpoint(k_path)
 
-    def load_checkpoint(self):
-        ckp = torch.load(self.checkpoint_path, map_location=self.device)
+    def load_checkpoint(self, checkpoint_path: str | None = None) -> None:
+        if checkpoint_path is None:
+            ckp = torch.load(self.checkpoint_path, map_location=self.device)
+        else:
+            ckp = torch.load(checkpoint_path, map_location=self.device)
         self.best_top_k = ckp['best_top_k']
         self.prev_path = ckp['prev_path']
         self.threshold = ckp['threshold']
         self.latent_dim = ckp['latent_dim']
-        self.auto_encoder = AutoEncoder(co = 5504,
-                                cd = self.latent_dim).to(self.device)
+        self.auto_encoder = AutoEncoder(
+            co = 5504,
+            cd = self.latent_dim).to(self.device)
         self.auto_encoder.load_state_dict(ckp['autoencoder'])
         self.optimizer.load_state_dict(ckp['optimizer'])
         self.current_epoch = ckp['current_epoch']

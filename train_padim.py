@@ -1,6 +1,6 @@
 from torchvision import transforms
-from datasets import TrainDataset, TestDataset
-from padim import PaDiM
+from Padim.datasets import TrainDataset, TestDataset
+from Padim import Padim
 from load_config import read_args
 from torch.utils.data import DataLoader
 import os
@@ -11,8 +11,6 @@ parser.add_argument('--config', '-c', required=True, type=str, help="path to yam
 ar = parser.parse_args()
 
 args = read_args(ar.config)
-
-model = PaDiM(args)
 
 tfms = transforms.Compose(
             [
@@ -37,6 +35,8 @@ test_dl = DataLoader(test_set, batch_size=args.TRAIN.BATCH_SIZE, num_workers=os.
 print('Size of training set: ', len(train_set))
 print('Size of testing set: ', len(test_set))
 
+model = Padim(args)
+
 # train
 model.train(train_dl)
 
@@ -44,5 +44,5 @@ model.train(train_dl)
 roc_auc = model.evaluate(test_dl)
 
 print("ROC AUC score:", roc_auc)
-print("Threshold: ", model.threshold)
+print("Threshold: ", model.get_optimap_threshold())
 model.save_checkpoint(filename=f'train_transistor_{roc_auc:.2f}.pt')

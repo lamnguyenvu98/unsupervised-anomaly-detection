@@ -1,16 +1,11 @@
 RegAD/__pycache__
-RegAD/checkpoints/*
 RegAD/env
 RegAD/models/__pycache__
 RegAD/utils/__pycache__
+RegAD/datasets/__pycache__
 
 PaDiM/__pycache__
-PaDiM/env
-PaDiM/checkpoints/*
 
 DFR/__pycache__
 DFR/models/__pycache__
-DFR/checkpoints/*
-DFR/env
-DFR/*.png
 

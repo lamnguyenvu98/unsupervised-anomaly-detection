@@ -1,0 +1,11 @@
+MODEL:
+  INPUT_SIZE: 256
+TRAIN:
+  EPOCH: 50
+  BATCH_SIZE: 8
+  PRETRAINED: True
+  DEVICE: "cuda"
+  DATA_DIR: "/content/transistor"
+  SAVE_DIR: "/content"
+  CHECKPOINT_PATH: ""
+  REDUCE_FEATURES: 100

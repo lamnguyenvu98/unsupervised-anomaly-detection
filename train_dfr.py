@@ -19,7 +19,7 @@ args = read_args(ar.config)
 
 tfms = transforms.Compose(
             [
-                transforms.Resize(args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE),
+                transforms.Resize([args.MODEL.INPUT_SIZE, args.MODEL.INPUT_SIZE]),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406],
@@ -54,7 +54,7 @@ for epoch in range(start_epoch, args.TRAIN.EPOCH):
     print(f"Epoch {epoch} / {args.TRAIN.EPOCH}")
     loss_train = model.train(train_dl)
     # Evaluate and save checkpoint k best checkpoint after 100 epoch
-    if epoch >= 100:
+    if epoch >= args.TRAIN.BURN_IN:
         model.compute_threshold(train_dl, fpr=0.005)
         auroc_score, loss_eval = model.evaluate(test_dl, model.threshold)
         metrics = {'epoch': epoch, 'auroc_score': auroc_score}

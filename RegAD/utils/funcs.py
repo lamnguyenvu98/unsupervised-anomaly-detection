@@ -50,14 +50,14 @@ def rot_img(x, theta):
     dtype =  torch.FloatTensor
     rot_mat = get_rot_mat(theta)[None, ...].type(dtype).repeat(x.shape[0],1,1)
     grid = F.affine_grid(rot_mat, x.size()).type(dtype)
-    x = F.grid_sample(x, grid, padding_mode="reflection")
+    x = F.grid_sample(x, grid, padding_mode="reflection", align_corners=True)
     return x
 
 def translation_img(x, a, b):
     dtype =  torch.FloatTensor
     rot_mat = get_translation_mat(a, b)[None, ...].type(dtype).repeat(x.shape[0],1,1)
     grid = F.affine_grid(rot_mat, x.size()).type(dtype)
-    x = F.grid_sample(x, grid, padding_mode="reflection")
+    x = F.grid_sample(x, grid, padding_mode="reflection", align_corners=True)
     return x
 
 def hflip_img(x):

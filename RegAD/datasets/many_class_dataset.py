@@ -3,7 +3,7 @@ import torch
 from torchvision import transforms
 from PIL import Image
 import random
-import glob
+from glob import glob
 import os
 
 class TrainDataset(Dataset):
@@ -11,11 +11,11 @@ class TrainDataset(Dataset):
         super(TrainDataset, self).__init__()
         self.tfms = transforms.Compose(
             [
-                transforms.Resize([256, 256], Image.ANTIALIAS),
+                transforms.Resize([224, 224], Image.ANTIALIAS),
                 transforms.ToTensor(),
             ]
         ) if tfms is None else tfms
-        # if our test object (e.g: we want to test "transistor" is normal or not, 
+        # if our test object (e.g: we want to test "transistor" is normal or not,
         # "transistor" shouldn't be in the training set)
         # if "transistor" was in our root directory
         # we have to ignore it (e.g: self.ignore_class = ['pill'])
@@ -23,18 +23,18 @@ class TrainDataset(Dataset):
         # if test object was not in root directory then, we have nothing to worry about.
         self.ignore_class = ignore_class
         self.total_labels = self.read_data(root)
-    
+
     def __getitem__(self, idx):
         img = Image.open(self.total_labels[idx][0]).convert('RGB')
         img = self.tfms(img)
         return img
-    
+
     def __len__(self):
         return len(self.total_labels)
-    
+
     def get_labels(self):
         return [label[1] for label in self.total_labels]
-    
+
     def read_data(self, root):
         total_labels = list()
         # root directory will contain a bunch of different objects class (e.g: bottle, transistor, screw,...)
@@ -52,7 +52,7 @@ class TrainDataset(Dataset):
             labels = [tuple([img_path, cls]) for img_path in cls_imgs]
             total_labels.extend(labels)
         return total_labels
-    
+
 class TaskTrainSampler(Sampler):
     def __init__(self,  dataset,
                         n_shot: int,
@@ -69,7 +69,7 @@ class TaskTrainSampler(Sampler):
                 self.cls_to_idx[cls].append(index)
             else:
                 self.cls_to_idx[cls] = [index]
-        
+
     def __iter__(self):
         # iterate through each class object
         for cls, cls_img_list in self.cls_to_idx.items():
@@ -77,11 +77,20 @@ class TaskTrainSampler(Sampler):
             for i in range(0, len(cls_img_list) - self.batch_size + 1, self.batch_size):
                 # build a query indices with size of self.batch_size
                 query_indices = cls_img_list[i:i+self.batch_size]
-                # build a support indices and it should not contain any query indices 
-                list_support_indices = list(set(cls_img_list) - set(query_indices))
+                leftover_indices = list(set(cls_img_list) - set(query_indices))
+
+                batch_sp = []
+
+                for idx, qi in enumerate(query_indices):
+                    sp_indices = query_indices[:idx] + query_indices[idx+1:] + leftover_indices
+                    support_each_query = random.sample(sp_indices, self.n_shot)
+                    batch_sp.extend(support_each_query)
                 # randomly pick some of indices from support list and concat them to query indices
                 # then return to DataLoader
-                yield query_indices + random.sample(list_support_indices, self.n_shot * self.batch_size)
+                sampled_list = query_indices + batch_sp
+                assert len(sampled_list) == self.batch_size * (1 + self.n_shot), 'Missing indices. Possibly duplicated'
+                yield sampled_list
+                # yield query_indices + random.sample(list_support_indices, self.n_shot * self.batch_size)
 
     def episodic_collate_fn(self, input_data):
         all_images = torch.cat([x.unsqueeze(0) for x in input_data])
@@ -111,9 +120,9 @@ class TestDataset(Dataset):
                 transforms.ToTensor(),
             ]
         ) if tfms is None else tfms
-        
+
         self.total_labels = self.read_data(test_path)
-    
+
     def __getitem__(self, idx):
         # read each image from its path and convert to RGB image
         img = Image.open(self.total_labels[idx][0]).convert('RGB')
@@ -123,10 +132,10 @@ class TestDataset(Dataset):
         label = self.total_labels[idx][-1]
         # return image tensor and its label
         return img, label
-    
+
     def __len__(self):
         return len(self.total_labels)
-        
+
     def read_data(self, test_path):
         total_labels = list()
         cls_idx = None
@@ -143,6 +152,6 @@ class TestDataset(Dataset):
 
             labels = [tuple([img_path, cls_idx]) for img_path in cls_imgs]
             total_labels.extend(labels)
-        
+
         # return a list of tuples, which contain each path of the image and its associated label
         return total_labels

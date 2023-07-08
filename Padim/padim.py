@@ -252,7 +252,7 @@ def embedding_concat(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     s = int(H1 / H2)
     x = F.unfold(x, kernel_size=s, dilation=1, stride=s)
     x = x.view(B, C1, -1, H2, W2)
-    z = torch.zeros(B, C1 + C2, x.size(2), H2, W2)
+    z = torch.zeros(B, C1 + C2, x.size(2), H2, W2).to(x.device)
     for i in range(x.size(2)):
         z[:, :, i, :, :] = torch.cat((x[:, :, i, :, :], y), 1)
     z = z.view(B, -1, H2 * W2)

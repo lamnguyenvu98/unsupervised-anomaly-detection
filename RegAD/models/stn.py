@@ -148,8 +148,8 @@ class STNModule(nn.Module):
                 theta1[:, 0, 2] = theta[:, 1]
                 theta1[:, 1, 2] = theta[:, 2]
 
-        grid = F.affine_grid(theta1, torch.Size(x.shape), align_corners=False)
-        img_transform = F.grid_sample(x, grid, padding_mode="reflection", align_corners=False)
+        grid = F.affine_grid(theta1, torch.Size(x.shape), align_corners=True)
+        img_transform = F.grid_sample(x, grid, padding_mode="reflection", align_corners=True)
 
         return img_transform, theta1
 
@@ -239,8 +239,8 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _fixstn(self, x, theta):
-        grid = F.affine_grid(theta, torch.Size(x.shape), align_corners=False)
-        img_transform = F.grid_sample(x, grid, padding_mode="reflection", align_corners=False)
+        grid = F.affine_grid(theta, torch.Size(x.shape), align_corners=True)
+        img_transform = F.grid_sample(x, grid, padding_mode="reflection", align_corners=True)
 
         return img_transform
 

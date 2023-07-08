@@ -4,6 +4,7 @@ MODEL:
   STN_MODE: "rotation_scale"
 TRAIN:
   EPOCH: 50
+  BURN_IN: 2
   BATCH_SIZE: 32
   N_SHOT: 4
   N_TEST: 5

@@ -102,7 +102,7 @@ There are some parameters need to be clarified:
 
 - TRAIN_DATA_DIR: root directory of dataset which contain multiple classes (screw, bottle, transistor,...)
 
-- TEST_DATA_DIR: directory of an object for modelevaluation, this object shouldn't be included in TRAIN_DATA_DIR. If it's inside TRAIN_DATA_DIR, set IGNORE_CLASS to name of that object.
+- TEST_DATA_DIR: directory of an object for model evaluation, this object shouldn't be included in TRAIN_DATA_DIR. If it's inside TRAIN_DATA_DIR, set IGNORE_CLASS to name of that object.
 
 ```
 TRAIN_DATA_DIR: "/content/mvtec-ad"

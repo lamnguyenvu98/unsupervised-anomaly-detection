@@ -104,6 +104,7 @@ There are some parameters need to be clarified:
 
 - TEST_DATA_DIR: directory of an object for model evaluation, this object shouldn't be included in TRAIN_DATA_DIR. If it's inside TRAIN_DATA_DIR, set IGNORE_CLASS to name of that object.
 
+Example:
 ```
 TRAIN_DATA_DIR: "/content/mvtec-ad"
 TEST_DATA_DIR: "/content/mvtec-ad/transistor"

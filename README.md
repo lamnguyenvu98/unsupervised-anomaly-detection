@@ -79,30 +79,32 @@ pip install .
 
 ### 2.2 Modify config file (configs/*.yaml)
 There are some parameters need to be clarified:
-- DATA_DIR: root directory of dataset
+- **DATA_DIR**: root directory of dataset
 
-- SAVE_DIR: directory where to save model checkpoints
+- **SAVE_DIR**: directory where to save model checkpoints
 
-- CHECKPOINT_PATH: path to model checkpoint for inference or resuming training process
+- **CHECKPOINT_PATH**: path to model checkpoint for inference or resuming training process
 
 #### 2.2.1 Padim 
-- REDUCE_FEATURES: number of features reduce to
+- **REDUCE_FEATURES**: number of features reduce to
 
 #### 2.2.2 DFR
-- NUM_LAYERS: number of backbone layers to get feature maps and aggregate them
+- **NUM_LAYERS**: number of backbone layers to get feature maps and aggregate them
 
 #### 2.2.3 RegAD
-- BACKBONE: name of backbone for feature extraction. Options: "resnet18", "resnet34", "resnet50", "resnet101", "resnet152".
+- **BACKBONE**: name of backbone for feature extraction. Options: *"resnet18", "resnet34", "resnet50", "resnet101", "resnet152"*.
 
-- STN_MODE: Default is "rotation_scale". Other options: "affine", "translation", "rotation", "scale", "shear", "translation_scale", "rotation_translation", "rotation_translation_scale".
+- **STN_MODE**: Default is *"rotation_scale"*. Other options: *"affine", "translation", "rotation", "scale", "shear", "translation_scale", "rotation_translation", "rotation_translation_scale"*.
 
-- N_SHOT: number of support set (4, 8, 16,...)
+- **N_SHOT**: number of support set (4, 8, 16,...)
 
-- N_TEST: number of rounds to evaluate model
+- **N_TEST**: number of rounds to evaluate model
 
-- TRAIN_DATA_DIR: root directory of dataset which contain multiple classes (screw, bottle, transistor,...)
+- **TRAIN_DATA_DIR**: root directory of dataset which contain multiple classes (screw, bottle, transistor,...)
 
-- TEST_DATA_DIR: directory of an object for model evaluation, this object shouldn't be included in TRAIN_DATA_DIR. If it's inside TRAIN_DATA_DIR, set IGNORE_CLASS to name of that object.
+- **TEST_DATA_DIR**: directory of an object for model evaluation, this object shouldn't be included in `TRAIN_DATA_DIR`. If it's inside `TRAIN_DATA_DIR`, set `IGNORE_CLASS` to name of that object.
+
+- **IGNORE_CLASS**: not include data of this class during training (if the folder of this class is inside root folder)
 
 Example:
 ```
@@ -111,7 +113,7 @@ TEST_DATA_DIR: "/content/mvtec-ad/transistor"
 IGNORE_CLASS: "transistor"
 ```
 
-`transistor` class was used for model evaluation. But it was also inside TRAIN_DATA_DIR. So that, setting IGNORE_CLASS to "transistor" helped model ignored this class during training. 
+`transistor` class was used for model evaluation. But it was also inside TRAIN_DATA_DIR. So that, setting `IGNORE_CLASS` to *"transistor"* helped model ignored this class during training. 
 
 ### 2.3 Train model
 #### 2.3.1 RegAD

@@ -17,22 +17,22 @@ pip install .
 ```
 ├── transistor (root)
 │   ├── train
-│       ├── good
-│           ├── image1.png
-│           └── image2.png
-│           └── ...
-│           └── imageN.png
+│   |    └── good
+│   |        ├── image1.png
+│   |        ├── image2.png
+│   |        ├── ...
+│   |        └── imageN.png
 │   └── test
-│       ├── good
-│           ├── image1.png
-│           └── image2.png
-│           └── ...
-│           └── imageN.png
-│       ├── anomaly
-│           ├── image1.png
-│           └── image2.png
-│           └── ...
-│           └── imageN.png
+│        ├── good
+│        |   ├── image1.png
+│        |   ├── image2.png
+│        |   ├── ...
+│        |   └── imageN.png
+│        └── anomaly
+│            ├── image1.png
+│            ├── image2.png
+│            ├── ...
+│            └── imageN.png
 ```
 
 #### 2.1.2 Structure for RegAD

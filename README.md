@@ -118,17 +118,17 @@ IGNORE_CLASS: "transistor"
 ### 2.3 Train model
 #### 2.3.1 RegAD
 ```
-python train_regad.py --config configs/regad_config.yaml
+python train/train_regad.py --config configs/regad_config.yaml
 ```
 
 #### 2.3.2 Padim
 ```
-python train_padim.py --config configs/padim_config.yaml
+python train/train_padim.py --config configs/padim_config.yaml
 ```
 
 #### 2.3.3 DFR
 ```
-python train_dfr.py --config configs/dfr_config.yaml
+python train/train_dfr.py --config configs/dfr_config.yaml
 ```
 
 

@@ -9,19 +9,11 @@ authors = [
     {name = "Vu Lam Nguyen", email = "lamnguyenvu98@gmail.com"},
 ]
 description = "Unsupervised Anomaly Detection"
-requires-python = ">=3.10"
-dependencies = [
-    "torch==1.13.1",
-    "torchvision>=0.14.1",
-    "opencv-python==4.7.0.68",
-    "dotmap==1.3.30",
-    "scipy==1.10.0",
-    "pillow==9.4.0",
-    "scikit-learn==1.2.1",
-    "kornia==0.6.9",
-    "tqdm==4.65.0",
-    "PyYAML==6.0"
-]
+requires-python = "==3.10.*"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
-where=["RegAD", "Padim", "DFR"]
+where=["src"]

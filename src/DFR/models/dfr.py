@@ -1,5 +1,5 @@
-from DFR.models.feature_extractor import FeatureExtractor
-from DFR.models.encoder import AutoEncoder
+from .feature_extractor import FeatureExtractor
+from .encoder import AutoEncoder
 
 import torch
 import torch.nn.functional as F
@@ -9,8 +9,8 @@ from tqdm import tqdm
 import numpy as np
 import random
 import os
-from sklearn.decomposition import PCA
 import re
+from sklearn.decomposition import PCA
 from sklearn.metrics import roc_auc_score
 
 from dotmap import DotMap

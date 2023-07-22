@@ -45,4 +45,4 @@ roc_auc = model.evaluate(test_dl)
 
 print("ROC AUC score:", roc_auc)
 print("Threshold: ", model.get_optimap_threshold())
-model.save_checkpoint(filename=f'train_transistor_{roc_auc:.2f}.pt')
+model.save_checkpoint(filename=f'train_{roc_auc:.2f}.pt')

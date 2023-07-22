@@ -58,7 +58,7 @@ for epoch in range(start_epoch, args.TRAIN.EPOCH):
         model.compute_threshold(train_dl, fpr=0.005)
         auroc_score, loss_eval = model.evaluate(test_dl, model.threshold)
         metrics = {'epoch': epoch, 'auroc_score': auroc_score}
-        model.save_top_k(metrics, monitor='auroc_score', k=3, filename='screw-{epoch:03d}-{auroc_score:.2f}.pt')
+        model.save_top_k(metrics, monitor='auroc_score', k=3, filename='model-{epoch:03d}-{auroc_score:.2f}.pt')
         print(f'[RESULT] Train Loss: {loss_train:.5f} - Val Loss: {loss_eval:.5f} - AUROC: {auroc_score:.3f}\n')
     else:
         print(f'[RESULT] Train Loss: {loss_train:.5f}\n')

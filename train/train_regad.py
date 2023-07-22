@@ -62,7 +62,7 @@ for epoch in range(start_epoch, args.TRAIN.EPOCH):
         auroc_score, best_score, val_loss = model.evaluate(test_dl, support_set_eval)
         # save best k model for average auroc_score
         metrics = {'epoch': epoch, 'auroc_score': auroc_score}
-        model.save_top_k(metrics, monitor='auroc_score', filename="trans-{epoch:02d}-{auroc_score:.2f}.pt", k=3)
+        model.save_top_k(metrics, monitor='auroc_score', filename="model-{epoch:02d}-{auroc_score:.2f}.pt", k=3)
         print(f"[RESULT] Train Loss: {train_loss:.5f} , Val Loss: {val_loss:.5f} , AUROC: {auroc_score:.2f} - BEST: {best_score:.2f}\n")
     else:
         print(f"[RESULT] Train Loss: {train_loss:.5f}\n")

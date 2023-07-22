@@ -8,7 +8,7 @@ git clone https://github.com/lamnguyenvu98/unsupervised-anomaly-detection.git
 
 cd unsupervised-anomaly-detection
 
-pip install .
+python -m pip install .
 ```
 
 ## 2. Training
